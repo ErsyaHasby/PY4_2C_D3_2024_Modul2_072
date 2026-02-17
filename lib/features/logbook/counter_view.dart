@@ -1,14 +1,66 @@
 import 'package:flutter/material.dart';
-import 'counter_controller.dart';
+import 'package:logbook_app/features/logbook/counter_controller.dart';
+import 'package:logbook_app/features/onboarding/onboarding_view.dart';
 
 class CounterView extends StatefulWidget {
-  const CounterView({super.key});
+  // Tambahkan variabel final untuk menampung username
+  final String username;
+
+  // Update Constructor agar mewajibkan (required) kiriman username
+  const CounterView({super.key, required this.username});
+
   @override
   State<CounterView> createState() => _CounterViewState();
 }
 
 class _CounterViewState extends State<CounterView> {
   final CounterController _controller = CounterController();
+
+  // Fungsi untuk menampilkan dialog konfirmasi logout
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Logout'),
+          content: const Text(
+            'Apakah Anda yakin ingin keluar? Data counter yang belum disimpan akan hilang.',
+          ),
+          actions: [
+            // Tombol Batal
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Menutup dialog saja
+              },
+              child: const Text('Batal'),
+            ),
+            // Tombol Ya, Logout
+            TextButton(
+              onPressed: () {
+                // Menutup dialog
+                Navigator.pop(context);
+
+                // Navigasi kembali ke Onboarding (Membersihkan Stack)
+                // pushAndRemoveUntil: Push halaman baru DAN hapus semua halaman sebelumnya
+                // (route) => false: Hapus SEMUA halaman dari stack
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OnboardingView(),
+                  ),
+                  (route) => false, // false = hapus semua route
+                );
+              },
+              child: const Text(
+                'Ya, Keluar',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   // Fungsi untuk menampilkan dialog konfirmasi reset
   void _showResetConfirmation() {
@@ -101,21 +153,42 @@ class _CounterViewState extends State<CounterView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("TASK 2: History Logger Counter"),
-        backgroundColor: Colors.deepPurple,
+        // Gunakan widget.username untuk menampilkan data dari kelas utama
+        title: Text("LogBook: ${widget.username}"),
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        // Tambahkan tombol logout di AppBar
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: _handleLogout,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Welcome message dengan username
+            Text(
+              "Selamat Datang, ${widget.username}!",
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo,
+              ),
+            ),
+            const SizedBox(height: 10),
+
             // Bagian Counter
-            const Text("Total Hitungan:", style: TextStyle(fontSize: 20)),
+            const Text("Total Hitungan:", style: TextStyle(fontSize: 18)),
             Text(
               '${_controller.value}',
               style: const TextStyle(
                 fontSize: 50,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Colors.indigo,
               ),
             ),
 
