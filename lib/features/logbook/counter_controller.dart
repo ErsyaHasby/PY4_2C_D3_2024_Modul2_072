@@ -28,34 +28,43 @@ class CounterController {
   int _step = 1;
   double _currentStep = 1.0; // State untuk slider
   List<HistoryItem> _history = []; // List untuk menyimpan riwayat aktivitas
+  String? _currentUsername; // HOMEWORK: Menyimpan username yang sedang login
 
-  // TASK 3: Keys untuk SharedPreferences
-  static const String _keyCounter = 'last_counter';
-  static const String _keyHistory = 'history_list';
+  // TASK 3 & HOMEWORK: Keys untuk SharedPreferences (per-user)
+  // Tidak lagi const karena akan dynamic berdasarkan username
+  static String _getCounterKey(String username) => 'last_counter_$username';
+  static String _getHistoryKey(String username) => 'history_list_$username';
 
   int get value => _counter; // Getter untuk akses data
   int get step => _step; // Getter untuk step
   double get currentStep => _currentStep; // Getter untuk current step slider
   List<HistoryItem> get history => _history; // Getter untuk riwayat
 
-  // TASK 3: Fungsi untuk menyimpan counter value
+  // HOMEWORK: Set current user
+  void setCurrentUser(String username) {
+    _currentUsername = username;
+  }
+
+  // TASK 3 & HOMEWORK: Fungsi untuk menyimpan counter value (per-user)
   // Dipanggil otomatis setiap kali counter berubah
-  Future<void> saveLastValue() async {
+  Future<void> saveLastValue(String username) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_keyCounter, _counter);
-    print('💾 Counter saved: $_counter'); // Debug log
+    await prefs.setInt(_getCounterKey(username), _counter);
+    print('💾 Counter saved for $username: $_counter'); // Debug log
   }
 
-  // TASK 3: Fungsi untuk load counter value
+  // TASK 3 & HOMEWORK: Fungsi untuk load counter value (per-user)
   // Dipanggil saat aplikasi pertama kali dibuka
-  Future<void> loadLastValue() async {
+  Future<void> loadLastValue(String username) async {
     final prefs = await SharedPreferences.getInstance();
-    _counter = prefs.getInt(_keyCounter) ?? 0; // Default: 0 jika belum ada
-    print('📂 Counter loaded: $_counter'); // Debug log
+    _counter =
+        prefs.getInt(_getCounterKey(username)) ??
+        0; // Default: 0 jika belum ada
+    print('📂 Counter loaded for $username: $_counter'); // Debug log
   }
 
-  // TASK 3: Fungsi untuk menyimpan history
-  Future<void> saveHistory() async {
+  // TASK 3 & HOMEWORK: Fungsi untuk menyimpan history (per-user)
+  Future<void> saveHistory(String username) async {
     final prefs = await SharedPreferences.getInstance();
 
     // Convert List<HistoryItem> ke List<String> (JSON)
@@ -63,14 +72,16 @@ class CounterController {
       return jsonEncode(item.toJson());
     }).toList();
 
-    await prefs.setStringList(_keyHistory, historyJson);
-    print('💾 History saved: ${_history.length} items'); // Debug log
+    await prefs.setStringList(_getHistoryKey(username), historyJson);
+    print(
+      '💾 History saved for $username: ${_history.length} items',
+    ); // Debug log
   }
 
-  // TASK 3: Fungsi untuk load history
-  Future<void> loadHistory() async {
+  // TASK 3 & HOMEWORK: Fungsi untuk load history (per-user)
+  Future<void> loadHistory(String username) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String>? historyJson = prefs.getStringList(_keyHistory);
+    List<String>? historyJson = prefs.getStringList(_getHistoryKey(username));
 
     if (historyJson != null) {
       // Convert List<String> kembali ke List<HistoryItem>
@@ -79,28 +90,30 @@ class CounterController {
         return HistoryItem.fromJson(json);
       }).toList();
 
-      print('📂 History loaded: ${_history.length} items'); // Debug log
+      print(
+        '📂 History loaded for $username: ${_history.length} items',
+      ); // Debug log
     } else {
       _history = []; // Jika belum ada data, list kosong
-      print('📂 No history found, starting fresh'); // Debug log
+      print('📂 No history found for $username, starting fresh'); // Debug log
     }
   }
 
-  // TASK 3: Fungsi untuk load semua data sekaligus
+  // TASK 3 & HOMEWORK: Fungsi untuk load semua data sekaligus (per-user)
   // Dipanggil saat CounterView pertama kali dibuka
-  Future<void> loadAllData() async {
-    await loadLastValue();
-    await loadHistory();
+  Future<void> loadAllData(String username) async {
+    await loadLastValue(username);
+    await loadHistory(username);
   }
 
-  // TASK 3: Fungsi untuk clear all data (untuk testing/reset)
-  Future<void> clearAllData() async {
+  // TASK 3 & HOMEWORK: Fungsi untuk clear all data (per-user, untuk testing/reset)
+  Future<void> clearAllData(String username) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyCounter);
-    await prefs.remove(_keyHistory);
+    await prefs.remove(_getCounterKey(username));
+    await prefs.remove(_getHistoryKey(username));
     _counter = 0;
     _history = [];
-    print('🗑️ All data cleared'); // Debug log
+    print('🗑️ All data cleared for $username'); // Debug log
   }
 
   void setStep(int newStep) {
@@ -127,28 +140,36 @@ class CounterController {
       _history.removeAt(0); // Hapus aktivitas paling lama
     }
 
-    // TASK 3: Auto-save history setiap kali ada perubahan
-    saveHistory();
+    // TASK 3 & HOMEWORK: Auto-save history setiap kali ada perubahan (per-user)
+    if (_currentUsername != null) {
+      saveHistory(_currentUsername!);
+    }
   }
 
   void increment() {
     _counter += _step;
     _addHistory('Menambah nilai sebesar $_step', 'add');
-    // TASK 3: Auto-save counter setiap kali berubah
-    saveLastValue();
+    // TASK 3 & HOMEWORK: Auto-save counter setiap kali berubah (per-user)
+    if (_currentUsername != null) {
+      saveLastValue(_currentUsername!);
+    }
   }
 
   void decrement() {
     _counter -= _step;
     _addHistory('Mengurangi nilai sebesar $_step', 'subtract');
-    // TASK 3: Auto-save counter setiap kali berubah
-    saveLastValue();
+    // TASK 3 & HOMEWORK: Auto-save counter setiap kali berubah (per-user)
+    if (_currentUsername != null) {
+      saveLastValue(_currentUsername!);
+    }
   }
 
   void reset() {
     _counter = 0;
     _addHistory('Reset counter ke 0', 'reset');
-    // TASK 3: Auto-save counter setiap kali berubah
-    saveLastValue();
+    // TASK 3 & HOMEWORK: Auto-save counter setiap kali berubah (per-user)
+    if (_currentUsername != null) {
+      saveLastValue(_currentUsername!);
+    }
   }
 }

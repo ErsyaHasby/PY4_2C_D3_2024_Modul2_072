@@ -19,16 +19,18 @@ class _CounterViewState extends State<CounterView> {
   // TASK 3: Loading state untuk data persistence
   bool _isLoading = true;
 
-  // TASK 3: Load data saat widget pertama kali dibuat
+  // TASK 3 & HOMEWORK: Load data saat widget pertama kali dibuat
   @override
   void initState() {
     super.initState();
+    // HOMEWORK: Set current user di controller
+    _controller.setCurrentUser(widget.username);
     _loadData();
   }
 
-  // TASK 3: Fungsi untuk load data dari SharedPreferences
+  // TASK 3 & HOMEWORK: Fungsi untuk load data dari SharedPreferences (per-user)
   Future<void> _loadData() async {
-    await _controller.loadAllData();
+    await _controller.loadAllData(widget.username);
     setState(() {
       _isLoading = false; // Selesai loading
     });
@@ -52,13 +54,13 @@ class _CounterViewState extends State<CounterView> {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                await _controller.clearAllData();
+                await _controller.clearAllData(widget.username);
                 setState(() {
                   // Refresh UI setelah clear
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('✅ Data tersimpan berhasil dihapus!'),
+                    content: Text('✅ Data Anda berhasil dihapus!'),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -204,6 +206,65 @@ class _CounterViewState extends State<CounterView> {
     }
   }
 
+  // TASK 3 (HOMEWORK): Fungsi untuk mendapatkan greeting berdasarkan waktu
+  String _getTimeGreeting() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 5 && hour < 11) {
+      return "Selamat Pagi";
+    } else if (hour >= 11 && hour < 15) {
+      return "Selamat Siang";
+    } else if (hour >= 15 && hour < 18) {
+      return "Selamat Sore";
+    } else {
+      return "Selamat Malam";
+    }
+  }
+
+  // TASK 3 (HOMEWORK): Fungsi untuk mendapatkan icon berdasarkan waktu
+  IconData _getTimeIcon() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 5 && hour < 11) {
+      return Icons.wb_sunny; // Matahari pagi
+    } else if (hour >= 11 && hour < 15) {
+      return Icons.wb_sunny_outlined; // Matahari terik
+    } else if (hour >= 15 && hour < 18) {
+      return Icons.wb_twilight; // Senja
+    } else {
+      return Icons.nightlight_round; // Malam
+    }
+  }
+
+  // TASK 3 (HOMEWORK): Fungsi untuk mendapatkan warna banner berdasarkan waktu
+  Color _getTimeBannerColor() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 5 && hour < 11) {
+      return Colors.orange.shade50; // Pagi: Orange lembut
+    } else if (hour >= 11 && hour < 15) {
+      return Colors.blue.shade50; // Siang: Biru cerah
+    } else if (hour >= 15 && hour < 18) {
+      return Colors.deepOrange.shade50; // Sore: Orange kemerahan
+    } else {
+      return Colors.indigo.shade50; // Malam: Indigo gelap
+    }
+  }
+
+  Color _getTimeIconColor() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 5 && hour < 11) {
+      return Colors.orange;
+    } else if (hour >= 11 && hour < 15) {
+      return Colors.blue;
+    } else if (hour >= 15 && hour < 18) {
+      return Colors.deepOrange;
+    } else {
+      return Colors.indigo;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -260,16 +321,74 @@ class _CounterViewState extends State<CounterView> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  // Welcome message dengan username
-                  Text(
-                    "Selamat Datang, ${widget.username}!",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.indigo,
+                  // TASK 3 (HOMEWORK): Welcome Banner berdasarkan waktu
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _getTimeBannerColor(),
+                          _getTimeBannerColor().withOpacity(0.5),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        // Icon waktu
+                        Icon(
+                          _getTimeIcon(),
+                          size: 48,
+                          color: _getTimeIconColor(),
+                        ),
+                        const SizedBox(width: 16),
+                        // Greeting text
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getTimeGreeting(),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.username,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
 
                   // TASK 3: Info bahwa data auto-saved
                   Container(

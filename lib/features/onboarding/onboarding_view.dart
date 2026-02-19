@@ -31,11 +31,11 @@ class _OnboardingViewState extends State<OnboardingView> {
   String _getStepTitle() {
     switch (step) {
       case 1:
-        return "Selamat Datang di LogBook App!";
+        return "Selamat Datang! 👋";
       case 2:
-        return "Kelola Counter dengan Mudah";
+        return "Kelola Counter Cerdas 📊";
       case 3:
-        return "Siap Memulai?";
+        return "Siap Memulai Perjalanan? 🚀";
       default:
         return "";
     }
@@ -45,11 +45,11 @@ class _OnboardingViewState extends State<OnboardingView> {
   String _getStepDescription() {
     switch (step) {
       case 1:
-        return "Aplikasi untuk mencatat dan mengelola hitungan Anda dengan riwayat lengkap.";
+        return "LogBook App membantu Anda mencatat dan mengelola hitungan dengan riwayat lengkap yang tersimpan otomatis. Data Anda aman dan tidak akan hilang!";
       case 2:
-        return "Tambah, kurangi, atau reset counter dengan step yang dapat disesuaikan.";
+        return "Tambah, kurangi, atau reset counter dengan mudah. Atur step counter sesuai kebutuhan dan lihat riwayat aktivitas Anda secara real-time!";
       case 3:
-        return "Mari login dan mulai menggunakan aplikasi!";
+        return "Mulai petualangan Anda! Login sekarang dan rasakan kemudahan mengelola counter dengan fitur-fitur canggih yang kami sediakan.";
       default:
         return "";
     }
